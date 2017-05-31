@@ -1,4 +1,5 @@
 import numpy as np
+import glob
 #from astropy import units as u
 #%matplotlib inline
 import matplotlib.pyplot as plt
@@ -33,7 +34,7 @@ class galsed():
                        'pahnorm':pah}
 
         #Read in the PAH features:
-        self.pwav, self.pflux = np.loadtxt('M11_SEDs/avg_pah.dat', \
+        self.pwav, self.pflux = np.loadtxt('M11_SEDs/Avg/avg_pah.dat', \
                                  comments='#', \
                                  unpack=True)  
         self.pah = np.interp(self.wav,self.pwav,self.pflux,\
@@ -118,7 +119,7 @@ class galsed():
 
         for key, value in self.params.iteritems():
             self.params[key] = pars[key].value
-            
+        
         return (self.getsed() - y)/err
 
     def fit(self, y, err):
@@ -126,41 +127,51 @@ class galsed():
         pars = Parameters()
         for key, value in self.params.iteritems():
             pars.add(key, value=value)
+            pars[key].set(min=0)
 
-        #pars['alpha'].set(vary=False)
-        #pars['plnorm'].set(vary=False)
-        pars['tp'].set(max=70.)
-        
+        pars['bb_temp'].set(min=20, max=50)
+        pars['beta'].set(vary=False)
+        pars['tp'].set(min=25, max=70)
+        pars['alpha'].set(min=0, max=4)
+        pars['plnorm'].set(max=0.8)
         return minimize(self.fitfunc, pars, args=(self.wav, y, err))
+
+
+for file in glob.glob('M11_SEDs/Indiv/*.dat'):
+
         
-wav, flux = np.loadtxt('M11_SEDs/SB1.dat', \
-                                 comments='#', \
-                                 unpack=True)
-o = np.where(wav < 500.)
-wav = wav[o]
-flux = flux[o]
+    wav, flux = np.loadtxt(file, \
+                            comments='#', \
+                            unpack=True)
+    o = np.where(wav < 500.)
+    wav = wav[o]
+    flux = flux[o]
 
-flux = flux/np.max(flux)
-sed = galsed()
-sed.setwav(wav)
-sed.setpl(alpha=2.8,plnorm=0.2,turnover=45)
+    flux = flux/np.max(flux)
 
-err = flux/5.
-o = np.where(wav < 35.)
-err[o] = 1.0*err[o]
+    sed = galsed()
+    sed.setwav(wav)
+    sed.setpl(alpha=2.8, plnorm=0.2, turnover=40)
+    sed.setbb(temp=40., beta=1.5)
 
-result = sed.fit(flux, err)
+    err = flux/5.
+    o = np.where(wav < 35.)
+    err[o] = 1.0*err[o]
 
-result.params.pretty_print()
-print result.redchi
+    result = sed.fit(flux, err)
 
-plt.plot(wav, flux, \
-         #wav, sed.getpl(), \
-         #wav, sed.getbb(), \
-         #wav, sed.getpah(), \
-         wav, sed.getsed())
-plt.axis([6,600,0.001,2])
-plt.xscale('log')
-plt.yscale('log')
-plt.show()
+    result.params.pretty_print()
+    print result.redchi
+
+    allwav = np.logspace(np.log10(5),np.log10(1000),1024)
+    sed.setwav(allwav)
+    plt.plot(wav, flux, \
+             #wav, sed.getpl(), \
+             #wav, sed.getbb(), \
+             #wav, sed.getpah(), \
+            sed.getwav(), sed.getsed())
+    plt.axis([6,600,0.001,2])
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.show()
 
