@@ -131,9 +131,8 @@ class galsed():
 
         pars['bb_temp'].set(min=20, max=50)
         pars['beta'].set(vary=False)
-        pars['tp'].set(min=25, max=70)
+        pars['tp'].set(min=10, max=70)
         pars['alpha'].set(min=0, max=4)
-        pars['plnorm'].set(max=0.8)
         return minimize(self.fitfunc, pars, args=(self.wav, y, err))
 
 
