@@ -1,10 +1,5 @@
 import numpy as np
 import glob
-#from astropy import units as u
-#%matplotlib inline
-import matplotlib.pyplot as plt
-#from astropy.analytic_functions import \
-#                blackbody_nu as bb_nu
 from astropy import constants as const
 from lmfit import minimize, Parameters
 
@@ -134,8 +129,9 @@ class galsed():
         pars['tp'].set(min=10, max=70)
         pars['alpha'].set(min=0, max=4)
         return minimize(self.fitfunc, pars, args=(self.wav, y, err))
-©
+
 #Loop through the files and fit:
+"""
 for file in glob.glob('M11_SEDs/Indiv/*.dat'):
 
 
@@ -173,3 +169,4 @@ for file in glob.glob('M11_SEDs/Indiv/*.dat'):
     plt.xscale('log')
     plt.yscale('log')
     plt.show()
+"""
