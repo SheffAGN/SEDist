@@ -2,6 +2,7 @@ import numpy as np
 import glob
 from astropy import constants as const
 from lmfit import minimize, Parameters
+import matplotlib.pyplot as plt
 
 class sed():
 
@@ -130,6 +131,43 @@ class sed():
         pars['alpha'].set(min=0, max=4)
         return minimize(self.fitfunc, pars, args=(self.wav, y, err))
 
+class photsys():
+
+    def __init__(self):
+        '''
+        Initialise filters and flag that they've
+        not yet been interpolated to a common wavelength
+        array.
+        '''
+        self.filter = {}
+        self.interp = False
+
+    def add_filter(self, name, wav, trans):
+        self.filter[name] = {'wav':wav, 'trans':trans}
+        self.interp = False
+
+    def get_flux(self, source):
+
+        #Shift to observed frame:
+        obswav = source.restsed.getwav()*(1.+source.z)
+        flux = {}
+
+        if self.interp == False:
+            for key,value in self.filter.iteritems():
+                self.filter[key]['trans'] = np.interp(obswav,\
+                    value['wav'], value['trans'],\
+                    left=0., right=0.)
+            self.interp = True
+
+        for key,value in self.filter.iteritems():
+            flux[key] = value['trans']*source.restsed.getsed()
+
+        #plt.plot(obswav, source.restsed.getsed())
+        #plt.plot(obswav, flux['red'])
+        #plt.xscale('log')
+        #plt.yscale('log')
+        #plt.show()
+
 class source():
 
     def __init__(self, ra, dec, z):
@@ -142,9 +180,15 @@ class source():
         self.restsed = sed()
 
 #Loop through the files and fit:
-a = source(0,0,0)
-for i in range(1000):
-    a.restsed.getsed()
+a = source(0,0,1)
+phot = photsys()
+fwav = np.linspace(100,400,128)
+ftrans = np.zeros(128)
+o = (fwav > 200) & (fwav < 300)
+ftrans[o] = 1.
+phot.add_filter('red', fwav, ftrans)
+phot.get_flux(a)
+
 """
 for file in glob.glob('M11_SEDs/Indiv/*.dat'):
 
