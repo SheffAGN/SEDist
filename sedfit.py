@@ -3,7 +3,7 @@ import glob
 from astropy import constants as const
 from lmfit import minimize, Parameters
 
-class galsed():
+class sed():
 
     #Speed of light in um/s:
     c = 1e6*(const.c).value
@@ -130,7 +130,21 @@ class galsed():
         pars['alpha'].set(min=0, max=4)
         return minimize(self.fitfunc, pars, args=(self.wav, y, err))
 
+class source():
+
+    def __init__(self, ra, dec, z):
+
+        #Set the position and redshift of the source
+        self.pos = [ra, dec]
+        self.z = z
+
+        #Give the source a rest-frame SED:
+        self.restsed = sed()
+
 #Loop through the files and fit:
+a = source(0,0,0)
+for i in range(1000):
+    a.restsed.getsed()
 """
 for file in glob.glob('M11_SEDs/Indiv/*.dat'):
 
