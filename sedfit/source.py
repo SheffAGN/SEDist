@@ -4,6 +4,7 @@ from astropy import constants as const
 from astropy.cosmology import WMAP9 as cosmo
 from lmfit import minimize, Parameters
 import matplotlib.pyplot as plt
+import os
 
 class source():
 
@@ -44,7 +45,8 @@ class sed():
                        'pahnorm':pah}
 
         #Read in the PAH features:
-        self.pwav, self.pflux = np.loadtxt('M11_SEDs/Avg/avg_pah.dat', \
+        pwd = os.path.dirname(os.path.abspath(__file__))
+        self.pwav, self.pflux = np.loadtxt(pwd+'/M11_SEDs/Avg/avg_pah.dat', \
                                  comments='#', \
                                  unpack=True)
         self.pah = np.interp(self.wav,self.pwav,self.pflux,\
@@ -144,105 +146,3 @@ class sed():
         pars['tp'].set(min=10, max=70)
         pars['alpha'].set(min=0, max=4)
         return minimize(self.fitfunc, pars, args=(self.wav, y, err))
-
-class photset():
-
-    def __init__(self):
-        '''
-        Initialise filters and flag that they've
-        not yet been interpolated to a common wavelength
-        array.
-        '''
-        self.filter = {}
-        self.interp = False
-
-    def add_filter(self, name, wav, trans):
-        self.filter[name] = {'wav':wav, 'trans':trans}
-        self.interp = False
-
-    def get_flux(self, source):
-
-        #Shift to observed frame:
-        obswav = source.sed.wav*(1.+source.z)
-        obsnu = sed.c/obswav
-        obssed = (source.sed.getsed()/source.d2)/1e-23
-        flux = {}
-
-        #Interpolate filter responses onto common wavelength array:
-        if self.interp == False:
-            for key,value in self.filter.iteritems():
-                o = value['trans'] > 0.
-                self.filter[key]['trans'] = np.interp(obswav,\
-                    value['wav'][o], value['trans'][o],\
-                    left=0., right=0.)
-            self.interp = True
-
-        #Integrate over filter transmission curve:
-        for key,value in self.filter.iteritems():
-            flux[key] = np.trapz(value['trans']*obssed, obsnu)/\
-                        np.trapz(value['trans'], obsnu)
-
-        return flux
-        #plt.plot(obswav, obssed)
-        #plt.plot(obswav, 100.*value['trans'])
-        #plt.plot(80., flux['red'], 'ro')
-        #plt.xscale('log')
-        #plt.yscale('log')
-        #plt.show()
-
-
-#This initialises a single source at [ra,dec]=(0,0) and z=1:
-a = source(0,0,0.1)
-
-#Whose SED properties can be adjusted thus:
-a.sed.params['plnorm'] = 0.2
-
-#This initialises a set of photometric filters:
-phot = photset()
-
-#Which you can add filters to thus:
-phot.add_filter('W12', np.linspace(11,13,128), np.ones(128))
-
-#Passing a source to the photometric set retuns the source fluxes
-#through all filters in the set:
-plnorms = np.random.normal(0.5, 0.1, 10000)
-
-"""
-for file in glob.glob('M11_SEDs/Indiv/*.dat'):
-
-
-    wav, flux = np.loadtxt(file, \
-                            comments='#', \
-                            unpack=True)
-    o = np.where(wav < 500.)
-    wav = wav[o]
-    flux = flux[o]
-
-    flux = flux/np.max(flux)
-
-    sed = galsed()
-    sed.setwav(wav)
-    sed.setpl(alpha=2.8, plnorm=0.2, turnover=40)
-    sed.setbb(temp=40., beta=1.5)
-
-    err = flux/5.
-    o = np.where(wav < 35.)
-    err[o] = 1.0*err[o]
-
-    result = sed.fit(flux, err)
-
-    result.params.pretty_print()
-    print result.redchi
-
-    allwav = np.logspace(np.log10(5),np.log10(1000),1024)
-    sed.setwav(allwav)
-    plt.plot(wav, flux, \
-             #wav, sed.getpl(), \
-             #wav, sed.getbb(), \
-             #wav, sed.getpah(), \
-            sed.getwav(), sed.getsed())
-    plt.axis([6,600,0.001,2])
-    plt.xscale('log')
-    plt.yscale('log')
-    plt.show()
-"""
