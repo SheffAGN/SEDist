@@ -5,6 +5,19 @@ from astropy.cosmology import WMAP9 as cosmo
 from lmfit import minimize, Parameters
 import matplotlib.pyplot as plt
 
+class source():
+
+    def __init__(self, ra, dec, z):
+
+        #Set the position and redshift of the source
+        self.pos = [ra, dec]
+        self.z = z
+        self.d = (cosmo.luminosity_distance(z)).value*3.086e24
+        self.d2 = 4.*np.pi*(self.d*self.d)
+
+        #Give the source a rest-frame SED:
+        self.sed = sed()
+
 class sed():
 
     #Speed of light in um/s:
@@ -177,18 +190,6 @@ class photset():
         #plt.yscale('log')
         #plt.show()
 
-class source():
-
-    def __init__(self, ra, dec, z):
-
-        #Set the position and redshift of the source
-        self.pos = [ra, dec]
-        self.z = z
-        self.d = (cosmo.luminosity_distance(z)).value*3.086e24
-        self.d2 = 4.*np.pi*(self.d*self.d)
-
-        #Give the source a rest-frame SED:
-        self.sed = sed()
 
 #This initialises a single source at [ra,dec]=(0,0) and z=1:
 a = source(0,0,0.1)
