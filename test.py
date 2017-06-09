@@ -6,10 +6,11 @@ import matplotlib.pyplot as plt
 ga = np.linspace(-2,2,1000)
 si = 0.2
 inerf = np.sqrt(1./2.)*(1.-(ga/si))
-f = 0.5*(3.+erf(inerf))
-plt.plot(ga, f)
 f = 0.5*(1.+erf(inerf))
-plt.plot(ga, f)
+plt.plot(ga, f, 'r-')
+inerf = np.sqrt(1./2.)*(3.-(ga/si))
+f = 0.5*(1.+erf(inerf))
+plt.plot(ga, f, 'b-')
 plt.show()
 quit()
 
