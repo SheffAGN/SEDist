@@ -1,5 +1,18 @@
 import numpy as np
 from sedfit import source, photset
+from scipy.special import erf
+import matplotlib.pyplot as plt
+
+ga = np.linspace(-2,2,1000)
+si = 0.2
+inerf = np.sqrt(1./2.)*(1.-(ga/si))
+f = 0.5*(3.+erf(inerf))
+plt.plot(ga, f)
+f = 0.5*(1.+erf(inerf))
+plt.plot(ga, f)
+plt.show()
+quit()
+
 
 #This initialises a single source at [ra,dec]=(0,0) and z=1:
 a = source(0,0,0.1)
