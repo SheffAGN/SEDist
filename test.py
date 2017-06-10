@@ -2,17 +2,53 @@ import numpy as np
 from sedfit import source, photset
 from scipy.special import erf
 import matplotlib.pyplot as plt
+from pymc3 import Model, Normal, HalfNormal, \
+    find_MAP, NUTS, sample, traceplot, summary
 
-ga = np.linspace(-2,2,1000)
-si = 0.2
-inerf = np.sqrt(1./2.)*(1.-(ga/si))
-f = 0.5*(1.+erf(inerf))
-plt.plot(ga, f, 'r-')
-inerf = np.sqrt(1./2.)*(3.-(ga/si))
-f = 0.5*(1.+erf(inerf))
-plt.plot(ga, f, 'b-')
-plt.show()
+# Initialize random number generator
+np.random.seed(123)
+
+# True parameter values
+alpha, sigma = 1, 1
+beta = [1, 2.5]
+
+# Size of dataset
+size = 100
+
+# Predictor variable
+X1 = np.random.randn(size)
+X2 = np.random.randn(size) * 0.2
+
+# Simulate outcome variable
+Y = alpha + beta[0]*X1 + beta[1]*X2 + np.random.randn(size)*sigma
+
+basic_model = Model()
+
+with basic_model:
+
+    # Priors for unknown model parameters
+    alpha = Normal('alpha', mu=0, sd=10)
+    beta = Normal('beta', mu=0, sd=10, shape=2)
+    sigma = HalfNormal('sigma', sd=1)
+
+    # Expected value of outcome
+    mu = alpha + beta[0]*X1 + beta[1]*X2
+
+    # Likelihood (sampling distribution) of observations
+    Y_obs = Normal('Y_obs', mu=mu, sd=sigma, observed=Y)
+
+with basic_model:
+    trace = sample()
+
+print trace['alpha'][-5:]
+
+traceplot(trace);
+
+summary(trace)
+
 quit()
+#inerf = np.sqrt(1./2.)*(1.-(ga/si))
+#f = 0.5*(1.+erf(inerf))
 
 
 #This initialises a single source at [ra,dec]=(0,0) and z=1:
@@ -30,6 +66,7 @@ phot.add_filter('W12', np.linspace(11,13,128), np.ones(128))
 #Passing a source to the photometric set retuns the source fluxes
 #through all filters in the set:
 plnorms = np.random.normal(0.5, 0.1, 10000)
+
 
 """
 for file in glob.glob('M11_SEDs/Indiv/*.dat'):

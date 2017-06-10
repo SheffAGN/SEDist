@@ -1,5 +1,4 @@
 import numpy as np
-import glob
 from astropy import constants as const
 from astropy.cosmology import WMAP9 as cosmo
 from lmfit import minimize, Parameters
