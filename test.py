@@ -7,7 +7,7 @@ from pymc3 import Model, Normal, HalfNormal, \
 
 # Initialize random number generator
 np.random.seed(123)
-print 'trivial'
+
 # True parameter values
 alpha, sigma = 1, 1
 beta = [1, 2.5]
