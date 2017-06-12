@@ -51,14 +51,14 @@ class sed():
         self.pah = np.interp(self.wav,self.pwav,self.pflux,\
                              left=0.,right=0.)
 
-    def setwav(self, wav):
+    def setWav(self, wav):
         #(Re)Define the wavelength array (in microns):
         self.wav = wav
         self.nu = self.c/self.wav
         self.pah = np.interp(self.wav,self.pwav,self.pflux,\
                              left=0.,right=0.)
 
-    def setbb(self, **kwargs):
+    def setBB(self, **kwargs):
         #(Re)Define the Blackbody parameters:
         #kwargs is used to maintain current values by default
         if 'bbnorm' in kwargs:
@@ -68,7 +68,7 @@ class sed():
         if 'beta' in kwargs:
             self.params['beta'] = kwargs.get('beta')
 
-    def setpl(self, **kwargs):
+    def setPL(self, **kwargs):
         #(Re)Define the Blackbody parameters:
         if 'plnorm' in kwargs:
             self.params['plnorm'] = kwargs.get('plnorm')
@@ -77,20 +77,17 @@ class sed():
         if 'turnover' in kwargs:
             self.params['tp'] = kwargs.get('turnover')
 
-    def setpah(self, **kwargs):
+    def setPAH(self, **kwargs):
         if 'pahnorm' in kwargs:
             self.params['pahnorm'] = kwargs.get('pahnorm')
 
-    def setsed(self, **kwargs):
+    def setSED(self, **kwargs):
         #This is just a shorthand for setting the three SED components:
-        self.setpl(**kwargs)
-        self.setbb(**kwargs)
-        self.setpah(**kwargs)
+        self.setPL(**kwargs)
+        self.setBB(**kwargs)
+        self.setPAH(**kwargs)
 
-    def getwav(self):
-        return self.wav
-
-    def bb(self, wav, temp):
+    def BB(self, wav, temp):
 
         #Use own BB generator (ripped from astropy);
         #astropy's is slow, largely due to checks.
@@ -100,19 +97,19 @@ class sed():
         return (2.0 * self.h * nu ** 3 / \
                 (self.c ** 2 * boltzm1))
 
-    def getbb(self):
+    def getBB(self):
 
         #Get the modified BB spectrum:
         #Calculate normalisation:
         wavpeak = 2.9e3/self.params['bb_temp']
         nupeak = self.c/wavpeak
         norm = self.params['bb_norm']/((nupeak**self.params['beta'])*\
-                       self.bb(wavpeak, self.params['bb_temp']))
+                       self.BB(wavpeak, self.params['bb_temp']))
 
-        bb = self.bb(self.wav, self.params['bb_temp'])
+        bb = self.BB(self.wav, self.params['bb_temp'])
         return norm*bb*(self.nu**self.params['beta'])
 
-    def getpl(self):
+    def getPL(self):
         #Get PL spectrum:
         norm = self.params['bb_norm']*self.params['plnorm']/\
             ((self.params['tp']**self.params['alpha'])*np.exp(-1.))
@@ -120,18 +117,18 @@ class sed():
         return norm*(self.wav**self.params['alpha'])*\
                              np.exp(-(self.wav/self.params['tp'])**2.)
 
-    def getpah(self):
+    def getPAH(self):
         return self.params['bb_norm']*self.params['pahnorm']*self.pah
 
-    def getsed(self):
-        return self.getpl()+self.getbb()+self.getpah()
+    def getSED(self):
+        return self.getPL()+self.getBB()+self.getPAH()
 
-    def fitfunc(self, pars, x, y, err):
+    def fitFunc(self, pars, x, y, err):
 
         for key, value in self.params.iteritems():
             self.params[key] = pars[key].value
 
-        return (self.getsed() - y)/err
+        return (self.getSED() - y)/err
 
     def fit(self, y, err):
 

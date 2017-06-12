@@ -11,16 +11,16 @@ class photset():
         self.filter = {}
         self.interp = False
 
-    def add_filter(self, name, wav, trans):
+    def addFilter(self, name, wav, trans):
         self.filter[name] = {'wav':wav, 'trans':trans}
         self.interp = False
 
-    def get_flux(self, source):
+    def getFlux(self, source):
 
         #Shift to observed frame:
         obswav = source.sed.wav*(1.+source.z)
-        obsnu = sed.c/obswav
-        obssed = (source.sed.getsed()/source.d2)/1e-23
+        obsnu = source.sed.c/obswav
+        obssed = (source.sed.getSED()/source.d2)/1e-23
         flux = {}
 
         #Interpolate filter responses onto common wavelength array:
