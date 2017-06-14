@@ -34,8 +34,11 @@ class photset():
 
         #Integrate over filter transmission curve:
         for key,value in self.filter.iteritems():
-            flux[key] = np.trapz(value['trans']*obssed, obsnu)/\
-                        np.trapz(value['trans'], obsnu)
+            fx = value['trans']*obssed
+            gx = value['trans']
+            dx = obsnu[1:] - obsnu[0:-1]
+            norm = 1./np.sum(dx*(gx[1:]+gx[0:-1]))
+            flux[key] = (norm*dx*(fx[1:]+fx[0:-1])).sum()
 
         return flux
         #plt.plot(obswav, obssed)
