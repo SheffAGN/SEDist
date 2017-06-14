@@ -19,6 +19,6 @@ flux = pho.getFlux(src)
 ind = np.argsort(flux.keys())
 print np.array(flux.keys())[ind]
 print np.array(flux.values())[ind]
-
+print 'trivial'
 from sedfit import fitter
 fitter.fit1d(0.,src,pho)
