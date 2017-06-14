@@ -27,7 +27,7 @@ pho.addFilter('W012',wav,trans)
 
 sigma = 20.
 obsflux = pho.getFlux(src)
-Y = obsflux.values()+np.random.randn(5)*sigma
+Y = obsflux+np.random.randn(5)*sigma
 
 sedmodel = Model()
 with sedmodel:
@@ -35,10 +35,10 @@ with sedmodel:
     alpha = Normal('alpha', mu=2., sd=0.5)
     src.sed.setBB(temp=temp)
     src.sed.setPL(alpha=alpha)
-    modflux = (pho.getFlux(src)).values()
-    print modflux
+    modflux = pho.getFlux(src)
+
     def logp(obs):
-        print type(modflux), type(obs), sigma
+        print type(modflux), type(obs)
         return -0.5*((modflux-obs)/sigma)**2.
 
     Y_obs = DensityDist('Y_obs', logp, observed=Y)

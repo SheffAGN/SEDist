@@ -1,5 +1,5 @@
 import numpy as np
-import theano.tensor as T
+from theano import shared
 
 class photset():
 
@@ -23,7 +23,6 @@ class photset():
         obsnu = source.sed.c/obswav
         obssed = (source.sed.getSED()/source.d2)/1e-23
         self.tarray = np.zeros([obswav.size, len(self.filter)])
-        flux = {}
 
     #Interpolate filter responses onto common wavelength array:
         i = 0
@@ -38,16 +37,16 @@ class photset():
 
         obssed = np.expand_dims(obssed,1)
     #Integrate over filter transmission curves:
+
         fx = self.tarray*obssed
         gx = self.tarray
+        print fx.dtype, gx.dtype
         dx = np.expand_dims(obsnu[1:] - obsnu[0:-1],1)
-        norm = 1./(dx*(gx[1:,:]+gx[0:-1,:])).sum(axis=0)
-        fvec = norm*(dx*(fx[1:,:]+fx[0:-1,:])).sum(axis=0)
-
-        i=0
-        for key,value in self.filter.iteritems():
-            flux[key] = fvec[i]
-            i = i+1
+        f = shared(dx*(fx[1:,:]+fx[0:-1,:]))
+        n = dx*(gx[1:,:]+gx[0:-1,:])
+        norm = shared(1./n.sum(axis=0))
+        print norm.dtype, f.dtype
+        flux = norm*f
 
         return flux
         #plt.plot(obswav, obssed)
