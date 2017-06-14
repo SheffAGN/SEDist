@@ -31,7 +31,7 @@ class sed():
                  pah=0.1):
 
         #Set the wavelength array; can be changed with setwav():
-        self.wav = np.logspace(np.log10(5),np.log10(1000),1024)
+        self.wav = np.logspace(np.log10(5),np.log10(1000),512)
         self.nu = self.c/self.wav
 
         #Set default properties; can be changed with setbb():
