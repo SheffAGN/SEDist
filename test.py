@@ -21,7 +21,7 @@ pho.addFilter('P100',wav,trans)
 
 sigma = 20.
 obsflux = pho.getFlux(src)
-Y = obsflux+np.random.randn(3)*sigma
+Y = obsflux.values()+np.random.randn(3)*sigma
 
 sedmodel = Model()
 with sedmodel:
@@ -29,13 +29,13 @@ with sedmodel:
     alpha = Normal('alpha', mu=2., sd=0.5)
     src.sed.setBB(temp=temp)
     src.sed.setPL(alpha=alpha)
-    modflux = pho.getFlux(src)
-    print modflux
+    modflux = (pho.getFlux(src)).values()
+    print type(modflux)
     def logp(obs):
         return -0.5*((modflux-obs)/sigma)**2.
 
     Y_obs = DensityDist('Y_obs', logp, observed=Y)
-
+quit()
 from pymc3 import find_MAP
 from scipy import optimize
 map_estimate = find_MAP(model=sedmodel, fmin=optimize.fmin_powell)
