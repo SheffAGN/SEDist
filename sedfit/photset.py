@@ -20,10 +20,8 @@ class photset():
 
     #Shift to observed frame:
         obswav = source.sed.wav*(1.+source.z)
-        obswav = obswav[0:-1]
         obsnu = source.sed.c/obswav
         obssed = (source.sed.getSED()/source.d2)/1e-23
-        obssed = obssed[0:-1]
         self.tarray = np.zeros([obswav.size, len(self.filter)])
         flux = {}
 
@@ -43,7 +41,6 @@ class photset():
         fx = self.tarray*obssed
         gx = self.tarray
         dx = np.expand_dims(obsnu[1:] - obsnu[0:-1],1)
-        print fx.shape, gx.shape
         norm = 1./(dx*(gx[1:,:]+gx[0:-1,:])).sum(axis=0)
         fvec = norm*(dx*(fx[1:,:]+fx[0:-1,:])).sum(axis=0)
 
