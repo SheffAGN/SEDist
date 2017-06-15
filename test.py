@@ -1,11 +1,12 @@
 import numpy as np
 from pymc3 import Model, Normal, DensityDist
+from pymc3 import NUTS, sample
 from sedfit import source, photset
 
 #Create a source:
 src = source(0,0,0.1)
 src.sed.setBB(temp=40.)
-src.sed.setPL(alpha=2.)
+src.sed.setPL(alpha=2., turnover=50.)
 
 #Generate a filter set and add filters:
 pho = photset()
@@ -27,15 +28,19 @@ sedmodel = Model()
 with sedmodel:
     temp = Normal('temp', mu=30, sd=10)
     alpha = Normal('alpha', mu=2., sd=0.5)
+    turn = Normal('turn', mu=50, sd=10)
     src.sed.setBB(temp=temp)
-    src.sed.setPL(alpha=alpha)
+    src.sed.setPL(alpha=alpha, turnover=turn)
     modflux = (pho.getFlux(src)).values()
-    print type(modflux)
+
     def logp(obs):
         return -0.5*((modflux-obs)/sigma)**2.
 
     Y_obs = DensityDist('Y_obs', logp, observed=Y)
+
+    trace = sample(5500)
 quit()
+
 from pymc3 import find_MAP
 from scipy import optimize
 map_estimate = find_MAP(model=sedmodel, fmin=optimize.fmin_powell)
