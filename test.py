@@ -25,9 +25,10 @@ wav,trans = np.loadtxt('./sedfit/Filters/WISE/WiseFilter_W3.txt', \
                        unpack=True)
 pho.addFilter('W012',wav,trans)
 
-sigma = 20.
 obsflux = pho.getFlux(src)
+sigma = 0.4*obsflux.tag.test_value
 Y = obsflux+np.random.randn(5)*sigma
+print Y.tag.test_value
 
 sedmodel = Model()
 with sedmodel:
@@ -36,9 +37,9 @@ with sedmodel:
     src.sed.setBB(temp=temp)
     src.sed.setPL(alpha=alpha)
     modflux = pho.getFlux(src)
+    print modflux.tag
 
     def logp(obs):
-        print type(modflux), type(obs)
         return -0.5*((modflux-obs)/sigma)**2.
 
     Y_obs = DensityDist('Y_obs', logp, observed=Y)
@@ -48,8 +49,9 @@ with sedmodel:
 #map_estimate = find_MAP(model=sedmodel, fmin=optimize.fmin_powell)
 #print(map_estimate)
 
-#from pymc3 import NUTS, sample
+from pymc3 import NUTS, sample, df_summary
 #from scipy import optimize
-#with sedmodel:
+with sedmodel:
     # draw 500 posterior samples
-#    trace = sample(5500)
+    trace = sample(5500, njobs=4)
+print df_summary(trace)

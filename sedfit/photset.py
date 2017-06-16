@@ -22,11 +22,11 @@ class photset():
         obswav = source.sed.wav*(1.+source.z)
         obsnu = source.sed.c/obswav
         obssed = (source.sed.getSED()/source.d2)/1e-23
-        self.tarray = np.zeros([obswav.size, len(self.filter)])
 
     #Interpolate filter responses onto common wavelength array:
         i = 0
         if self.interp == False:
+            self.tarray = np.zeros([obswav.size, len(self.filter)])
             for key,value in self.filter.iteritems():
                 o = value['trans'] > 0.
                 self.tarray[:,i] = np.interp(obswav,\
@@ -35,18 +35,20 @@ class photset():
                 i = i+1
             self.interp = True
 
-        obssed = np.expand_dims(obssed,1)
-    #Integrate over filter transmission curves:
+        #Integrate over filter transmission curves:
+        obssed = obssed[:,None]
 
         fx = self.tarray*obssed
         gx = self.tarray
 
-        dx = np.expand_dims(obsnu[1:] - obsnu[0:-1],1)
+        dx = obsnu[1:] - obsnu[0:-1]
+        dx = dx[:,None]
+
         f = dx*(fx[1:,:]+fx[0:-1,:])
         n = dx*(gx[1:,:]+gx[0:-1,:])
         norm = 1./T.sum(n, axis=0)
+
         flux = T.sum(f, axis=0)
-        print f.__dict__
         flux = norm*T.sum(f, axis=0)
 
         return flux
