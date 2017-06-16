@@ -1,5 +1,5 @@
 import numpy as np
-from theano import shared
+import theano.tensor as T
 
 class photset():
 
@@ -40,13 +40,14 @@ class photset():
 
         fx = self.tarray*obssed
         gx = self.tarray
-        print fx.dtype, gx.dtype
+
         dx = np.expand_dims(obsnu[1:] - obsnu[0:-1],1)
-        f = shared(dx*(fx[1:,:]+fx[0:-1,:]))
+        f = dx*(fx[1:,:]+fx[0:-1,:])
         n = dx*(gx[1:,:]+gx[0:-1,:])
-        norm = shared(1./n.sum(axis=0))
-        print norm.dtype, f.dtype
-        flux = norm*f
+        norm = 1./T.sum(n, axis=0)
+        flux = T.sum(f, axis=0)
+        print f.__dict__
+        flux = norm*T.sum(f, axis=0)
 
         return flux
         #plt.plot(obswav, obssed)
