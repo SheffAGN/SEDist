@@ -1,7 +1,6 @@
 import numpy as np
 from astropy import constants as const
 from astropy.cosmology import WMAP9 as cosmo
-from lmfit import minimize, Parameters
 import matplotlib.pyplot as plt
 import os
 
@@ -131,14 +130,15 @@ class sed():
         return (self.getSED() - y)/err
 
     def fit(self, y, err):
+        from lmfit import minimize, Parameters
 
         pars = Parameters()
         for key, value in self.params.iteritems():
             pars.add(key, value=value)
             pars[key].set(min=0)
 
-        pars['bb_temp'].set(min=20, max=50)
+        pars['bb_temp'].set(min=20, max=45)
         pars['beta'].set(vary=False)
-        pars['tp'].set(min=10, max=70)
-        pars['alpha'].set(min=0, max=4)
-        return minimize(self.fitfunc, pars, args=(self.wav, y, err))
+        pars['tp'].set(min=20, max=50)
+        pars['alpha'].set(min=2.5, max=5)
+        return minimize(self.fitFunc, pars, args=(self.wav, y, err))
