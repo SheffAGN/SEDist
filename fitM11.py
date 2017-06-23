@@ -2,6 +2,11 @@ import numpy as np
 import glob
 import matplotlib.pyplot as plt
 from sedfit import source
+import corner
+
+fig = plt.figure(1)
+i = 1
+pars = np.zeros([14,7])
 
 for file in glob.glob('sedfit/M11_SEDs/Indiv/*.dat'):
 
@@ -28,16 +33,47 @@ for file in glob.glob('sedfit/M11_SEDs/Indiv/*.dat'):
 
     result.params.valuesdict()
     resdict = result.params.valuesdict()
-    print resdict['tp']
+
+    j = 0
+    for key, value in resdict.iteritems():
+        pars[i-1,j] = value
+        j = j+1
 
     allwav = np.logspace(np.log10(5),np.log10(1000),1024)
     src.sed.setWav(allwav)
-    plt.plot(src.sed.wav, src.sed.getPL(), \
-             src.sed.wav, src.sed.getBB(), \
-             src.sed.wav, src.sed.getPAH(), \
-             src.sed.wav, src.sed.getSED(), \
-             wav, flux)
-    plt.axis([6,600,0.001,2])
+
+    ax = fig.add_subplot(4,4,i)
+    ax.plot(src.sed.wav, src.sed.getPL(), 'b-', alpha=0.3)
+    ax.plot(src.sed.wav, src.sed.getBB(), 'm-', alpha=0.3)
+    ax.plot(src.sed.wav, src.sed.getPAH(), 'g-', alpha=0.3)
+    ax.plot(src.sed.wav, src.sed.getSED(),'r-')
+    ax.plot(wav, flux, 'k-')
+
+    for tick in ax.yaxis.get_major_ticks():
+        if i % 4 == 1:
+            tick.label1On = True
+        else:
+            tick.label1On = False
+
+    for tick in ax.xaxis.get_major_ticks():
+        if i > 10:
+            tick.label1On = True
+        else:
+            tick.label1On = False
+
+
+    ax.axis([6,600,0.001,2])
     plt.xscale('log')
     plt.yscale('log')
-    plt.show()
+
+    i = i+1
+plt.figtext(0.5, 0.02, 'Wavelength / $\mu m$', ha='center')
+plt.figtext(0.02, 0.5, 'Relative $\\nu F_\\nu$', va='center', \
+            rotation='vertical')
+
+#plt.show()
+pars = np.delete(pars, (2,3), axis=1)
+labels = ['PAH', 'TP', 'Temp', 'PLNorm', 'alpha']
+fig = corner.corner(pars, figsize=(2,2), dpi=80,  \
+                    labels=labels, plot_contours=False)
+fig.savefig("/Users/James/Desktop/triangle.pdf")
