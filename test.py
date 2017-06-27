@@ -1,12 +1,12 @@
 import numpy as np
-from pymc3 import Model, Normal, DensityDist
+from pymc3 import Model, Uniform, DensityDist
 from pymc3 import NUTS, sample
 from sedfit import source, photset
 
 #Create a source:
 src = source(0,0,0.1)
-src.sed.setBB(temp=40.)
-src.sed.setPL(alpha=2.)
+src.sed.setBB(temp=36.)
+src.sed.setPL(alpha=3.0, turnover=40, plnorm=0.2)
 
 #Generate a filter set and add filters:
 pho = photset()
@@ -31,11 +31,18 @@ sigma = 0.1*obsflux.tag.test_value
 Y = obsflux+np.random.randn(5)*sigma
 
 sedmodel = Model()
+
+from pymc3 import find_MAP
+from scipy import optimize
+from pymc3 import NUTS, sample, df_summary, summary
+
 with sedmodel:
-    temp = Normal('temp', mu=40, sd=10)
-    alpha = Normal('alpha', mu=2., sd=0.5)
+    tp = Uniform('tp', lower=20., upper=50.)
+    temp = Uniform('temp', lower=20, upper=50)
+    alpha = Uniform('alpha', lower=2.7, upper=4.2)
+    plnorm = Uniform('plnorm', lower=0.1, upper=0.5)
     src.sed.setBB(temp=temp)
-    src.sed.setPL(alpha=alpha)
+    src.sed.setPL(alpha=alpha,turnover=tp,plnorm=plnorm)
     modflux = pho.getFlux(src)
 
     def logp(obs):
@@ -43,14 +50,20 @@ with sedmodel:
 
     Y_obs = DensityDist('Y_obs', logp, observed=Y)
 
-#from pymc3 import find_MAP
-#from scipy import optimize
-#map_estimate = find_MAP(model=sedmodel, fmin=optimize.fmin_powell)
-#print(map_estimate)
+    trace = sample(10000, tune=500)
 
-from pymc3 import NUTS, sample, df_summary
-#from scipy import optimize
-with sedmodel:
-    # draw 500 posterior samples
-    trace = sample(5500)
+    # obtain starting values via MAP
+    #start = find_MAP(fmin=optimize.fmin_powell)
+
+    # instantiate sampler
+    #step = NUTS(scaling=start)
+
+    # draw 2000 posterior samples
+    #trace = sample(10000, step, start=start)
+
+out = np.array([trace['temp'],trace['alpha'],trace['tp'], trace['plnorm']])
+import corner
 print df_summary(trace)
+labels = ['Temp', 'alpha', 'TP', 'plnorm']
+fig = corner.corner(out.T,labels=labels)
+fig.savefig("/Users/James/Desktop/out.pdf")

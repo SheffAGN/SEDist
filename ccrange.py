@@ -3,6 +3,8 @@ import corner
 import matplotlib.pyplot as plt
 import numpy as np
 from sedfit import source, photset
+from theano.tensor.shared_randomstreams import RandomStreams
+from theano import function
 
 pho = photset()
 wav,trans = np.loadtxt('./sedfit/Filters/IRAS/IRAS_12um_Filter_Resp.dat', \
@@ -29,6 +31,13 @@ temp = 53.33-(2./3.)*tp+rand.normal(0., 1.5, nsed)
 plnorm = rand.uniform(0.1,0.5,nsed)
 alpha = rand.uniform(2.7,4.2,nsed)
 pah = rand.uniform(0.02, 0.1,nsed)
+
+srng = RandomStreams(seed=234)
+tp = srng.uniform((nsed,1), low=20, high=50)
+temp = 53.33-(2./3.)*tp+srng.normal((nsed,1), 0., 1.5)
+plnorm = srng.uniform((nsed,1), low=0.1, high=0.5,)
+alpha = srng.uniform((nsed,1),low=2.7,high=4.2)
+pah = srng.uniform((nsed,1),low=0.02, high=0.1)
 
 src.sed.params['bb_norm'] = 1e35
 x = np.zeros(nsed)
