@@ -37,7 +37,7 @@ sedmodel = Model()
 
 from pymc3 import find_MAP
 from scipy import optimize
-from pymc3 import NUTS, sample, df_summary, summary
+from pymc3 import NUTS, sample, df_summary, summary, Metropolis
 
 with sedmodel:
     tp = Uniform('tp', lower=20., upper=50.)
@@ -53,7 +53,7 @@ with sedmodel:
 
     Y_obs = DensityDist('Y_obs', logp, observed=Y)
 
-    trace = sample(5000, tune=500)
+    trace = sample(10000)
 
     # obtain starting values via MAP
     #start = find_MAP(fmin=optimize.fmin_powell)
