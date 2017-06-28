@@ -25,6 +25,9 @@ pho.addFilter('M024',wav,trans)
 wav,trans = np.loadtxt('./sedfit/Filters/WISE/WiseFilter_W3.txt', \
                        unpack=True)
 pho.addFilter('W012',wav,trans)
+#wav,trans = np.loadtxt('./sedfit/Filters/WISE/WiseFilter_W2.txt', \
+#                       unpack=True)
+#pho.addFilter('W008',wav,trans)
 
 obsflux = pho.getFlux(src)
 sigma = 0.1*obsflux.tag.test_value
@@ -50,7 +53,7 @@ with sedmodel:
 
     Y_obs = DensityDist('Y_obs', logp, observed=Y)
 
-    trace = sample(10000, tune=500)
+    trace = sample(5000, tune=500)
 
     # obtain starting values via MAP
     #start = find_MAP(fmin=optimize.fmin_powell)
@@ -59,7 +62,7 @@ with sedmodel:
     #step = NUTS(scaling=start)
 
     # draw 2000 posterior samples
-    #trace = sample(10000, step, start=start)
+    #trace = sample(5000, step, start=start)
 
 out = np.array([trace['temp'],trace['alpha'],trace['tp'], trace['plnorm']])
 import corner
