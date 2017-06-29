@@ -40,12 +40,13 @@ from scipy import optimize
 from pymc3 import NUTS, sample, df_summary, summary, Metropolis
 
 with sedmodel:
-    tp = Uniform('tp', lower=20., upper=50.)
-    temp = Uniform('temp', lower=20, upper=50)
-    alpha = Uniform('alpha', lower=2.7, upper=4.2)
-    plnorm = Uniform('plnorm', lower=0.1, upper=0.5)
+    tp = 35.+15.*Uniform('tp', lower=-1, upper=1)
+    temp = 35.+15.*Uniform('temp', lower=-1, upper=1)
+    #alpha = 3.45+0.75*Uniform('alpha', lower=-1, upper=1)
+    plnorm = 0.3+0.2*Uniform('plnorm', lower=-1, upper=1)
+
     src.sed.setBB(temp=temp)
-    src.sed.setPL(alpha=alpha,turnover=tp,plnorm=plnorm)
+    src.sed.setPL(turnover=tp,plnorm=plnorm)
     modflux = pho.getFlux(src)
 
     def logp(obs):
@@ -53,7 +54,7 @@ with sedmodel:
 
     Y_obs = DensityDist('Y_obs', logp, observed=Y)
 
-    trace = sample(10000)
+    trace = sample(1000, n_init=50000)
 
     # obtain starting values via MAP
     #start = find_MAP(fmin=optimize.fmin_powell)
@@ -64,9 +65,9 @@ with sedmodel:
     # draw 2000 posterior samples
     #trace = sample(5000, step, start=start)
 
-out = np.array([trace['temp'],trace['alpha'],trace['tp'], trace['plnorm']])
+out = np.array([35+15.*trace['temp'],35+15.*trace['tp'], 0.3+0.2*trace['plnorm']])
 import corner
 print df_summary(trace)
-labels = ['Temp', 'alpha', 'TP', 'plnorm']
-fig = corner.corner(out.T,labels=labels)
-fig.savefig("/Users/James/Desktop/out.pdf")
+labels = ['Temp', 'TP', 'plnorm']
+fig = corner.corner(out.T,labels=labels, plot_density=False, plot_contours=False)
+fig.savefig("out.pdf")
