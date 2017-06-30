@@ -1,5 +1,5 @@
 import numpy as np
-from pymc3 import Model, Uniform, DensityDist
+from pymc3 import Model, Uniform, DensityDist, Normal
 from pymc3 import NUTS, sample
 from sedfit import source, photset
 
@@ -40,12 +40,12 @@ from scipy import optimize
 from pymc3 import NUTS, sample, df_summary, summary, Metropolis
 
 with sedmodel:
-    tp = 35.+15.*Uniform('tp', lower=-1, upper=1)
-    temp = 35.+15.*Uniform('temp', lower=-1, upper=1)
+    tp = 35.+15.*Normal('tp', 0., 0.5)
+    #temp = 35.+15.*Uniform('temp', lower=-1, upper=1)
     #alpha = 3.45+0.75*Uniform('alpha', lower=-1, upper=1)
-    plnorm = 0.3+0.2*Uniform('plnorm', lower=-1, upper=1)
+    plnorm = 0.3+0.2*Normal('plnorm', 0., 0.5)
 
-    src.sed.setBB(temp=temp)
+    #src.sed.setBB(temp=temp)
     src.sed.setPL(turnover=tp,plnorm=plnorm)
     modflux = pho.getFlux(src)
 
@@ -65,9 +65,9 @@ with sedmodel:
     # draw 2000 posterior samples
     #trace = sample(5000, step, start=start)
 
-out = np.array([35+15.*trace['temp'],35+15.*trace['tp'], 0.3+0.2*trace['plnorm']])
+out = np.array([35.+15.*trace['tp'], 0.3+0.2*trace['plnorm']])
 import corner
 print df_summary(trace)
-labels = ['Temp', 'TP', 'plnorm']
+labels = ['TP', 'plnorm']
 fig = corner.corner(out.T,labels=labels, plot_density=False, plot_contours=False)
 fig.savefig("out.pdf")
